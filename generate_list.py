@@ -72,7 +72,7 @@ w_f.close()
 #split train test data set
 all_list_lines = open(DataPath + 'all_list.csv', 'r').readlines()[1:]
 random.shuffle(all_list_lines)
-TestSize = len(all_list_lines) * TestRate
+TestSize = int(len(all_list_lines) * TestRate)
 #TrainSize = len(all_list_lines) - TestSize
 train_f = open(DataPath + TrainList + '.csv', 'w')
 test_f = open(DataPath + TestList + '.csv', 'w')
