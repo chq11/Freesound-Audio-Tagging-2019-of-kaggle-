@@ -2,6 +2,7 @@ import numpy as np
 
 np.random.seed(1337)  # for reproducibility
 import keras
+from keras import metrics
 import tensorflow as tf
 from keras import applications
 import keras.backend.tensorflow_backend as KTF
@@ -413,3 +414,35 @@ with open(PATH + 'used_time.txt', 'a+') as t1:
 
 # summary_result(PATH=PATH, Fold=Fold, Earlystop=Earlystop)
 
+raw_ssf = open(List_path+'sample_submission.csv','r')
+raw_lines = raw_ssf.readlines()
+
+ssf = open(PATH+'sample_submission1.csv','w')
+ssf.write(raw_lines[0])
+raw_lines = raw_lines[1:]
+
+for i in range(len(raw_lines)):
+    test_p = List_path + 'test/' + raw_lines[i].strip().split(',')[0]
+    test_data = test_audio(test_p, colum=col, NFFT=NFFT, noverlap=noverlap, frequce=44100, sub_sample=SubSample,
+                           pad_to=Pad_to, stft_form=False, stft_handle=False, only_real=False)
+    if i % batch_size == 0:
+        test_batch_d = test_data
+    else:
+        test_batch_d = np.vstack((test_batch_d, test_data))
+
+    if (i-batch_size+1)%batch_size == 0 or i == len(raw_lines)-1:
+        y_bacth = model.predict(test_batch_d, batch_size=batch_size)
+        y_bacth = np.where(y_bacth>=0.5, 1, 0)
+        if i == (batch_size - 1):
+            y_all = y_bacth
+        else:
+            y_all = np.vstack((y_all, y_bacth))
+
+for i in range(len(raw_lines)):
+    to_write = raw_lines[i].strip().split(',')[0]
+    for j in range(nb_classes):
+        to_write = ','.join([to_write, str(y_all[i][j])])
+    ssf.write(to_write+'\n')
+
+ssf.close()
+raw_ssf.close()
